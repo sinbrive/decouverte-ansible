@@ -1,0 +1,27 @@
+- name: Configure Nginx Load Balancer
+  hosts: loadbalancer
+  become: yes
+  # vars:
+  #   lb_mode: "round_robin"  # ou "least_conn" ou "ip_hash" pour d'autres modes
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Set Nginx config template path
+      set_fact:
+        nginx_template: "templates/nginx_{{ lb_mode }}.conf.j2"
+
+    - name: Deploy Nginx config
+      template:
+        src: "{{ nginx_template }}"
+        dest: /etc/nginx/nginx.conf
+        mode: '0644'
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes

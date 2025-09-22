@@ -1,0 +1,5 @@
+- name: Setup web servers
+  hosts: webservers
+  become: yes
+  roles:
+    - webserver
