@@ -1,0 +1,47 @@
+- name: Déploiement Apache sur les webservers
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Installer Apache
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+    - name: Copier la page d’accueil
+      copy:
+        src: html/index.html
+        dest: /var/www/html/index.html
+
+    - name: Démarrer Apache
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+- name: Déploiement Nginx sur le load balancer
+  hosts: loadbalancer
+  become: yes
+  vars:
+    lb_mode: round_robin
+  tasks:
+    - name: Installer Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Choisir le fichier de configuration Nginx
+      set_fact:
+        nginx_config_file: "nginx_configs/nginx_{{ lb_mode }}.conf"
+
+    - name: Copier le fichier de configuration Nginx
+      copy:
+        src: "{{ nginx_config_file }}"
+        dest: /etc/nginx/nginx.conf
+
+    - name: Redémarrer Nginx
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
